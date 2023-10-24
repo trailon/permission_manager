@@ -8,19 +8,20 @@ import 'package:permission_handler/permission_handler.dart' as perm;
 import 'package:permission_manager/models/permission_response.dart';
 
 export 'package:permission_handler/permission_handler.dart';
+export 'package:permission_manager/permission_manager.dart';
 
-late BaseDeviceInfo _baseDeviceInfo;
-late AndroidDeviceInfo _androidDeviceInfo;
-late IosDeviceInfo _iosDeviceInfo;
-late WindowsDeviceInfo _windowsDeviceInfo;
-late MacOsDeviceInfo _macosDeviceInfo;
-late LinuxDeviceInfo _linuxDeviceInfo;
-late WebBrowserInfo _webBrowserInfo;
+BaseDeviceInfo? _baseDeviceInfo;
+AndroidDeviceInfo? _androidDeviceInfo;
+IosDeviceInfo? _iosDeviceInfo;
+WindowsDeviceInfo? _windowsDeviceInfo;
+MacOsDeviceInfo? _macosDeviceInfo;
+LinuxDeviceInfo? _linuxDeviceInfo;
+WebBrowserInfo? _webBrowserInfo;
 
 class PermissionManager {
   late DeviceInfoPlugin _plugin;
-  int get androidsdk => _androidDeviceInfo.version.sdkInt;
-  double get iosversion => double.tryParse(_iosDeviceInfo.systemVersion) ?? 0;
+  int get androidsdk => _androidDeviceInfo!.version.sdkInt;
+  double get iosversion => double.tryParse(_iosDeviceInfo!.systemVersion) ?? 0;
   PermissionManager() {
     _plugin = DeviceInfoPlugin();
   }
