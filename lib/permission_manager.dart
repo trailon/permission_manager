@@ -19,12 +19,10 @@ LinuxDeviceInfo? _linuxDeviceInfo;
 WebBrowserInfo? _webBrowserInfo;
 
 class PermissionManager {
-  late DeviceInfoPlugin _plugin;
+  final DeviceInfoPlugin _plugin = DeviceInfoPlugin();
   int get androidsdk => _androidDeviceInfo!.version.sdkInt;
   double get iosversion => double.tryParse(_iosDeviceInfo!.systemVersion) ?? 0;
-  PermissionManager() {
-    _plugin = DeviceInfoPlugin();
-  }
+  PermissionManager();
 
   Future<perm.PermissionStatus> cameraStatus() async =>
       await perm.Permission.camera.status;
