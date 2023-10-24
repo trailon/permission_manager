@@ -7,6 +7,8 @@ import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart' as perm;
 import 'package:permission_manager/models/permission_response.dart';
 
+export 'package:permission_handler/permission_handler.dart';
+
 late BaseDeviceInfo _baseDeviceInfo;
 late AndroidDeviceInfo _androidDeviceInfo;
 late IosDeviceInfo _iosDeviceInfo;
@@ -15,7 +17,6 @@ late MacOsDeviceInfo _macosDeviceInfo;
 late LinuxDeviceInfo _linuxDeviceInfo;
 late WebBrowserInfo _webBrowserInfo;
 
-/// A Calculator.
 class PermissionManager {
   late DeviceInfoPlugin _plugin;
   int get androidsdk => _androidDeviceInfo.version.sdkInt;
