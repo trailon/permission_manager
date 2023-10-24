@@ -24,8 +24,8 @@ class PermissionManager {
     _plugin = DeviceInfoPlugin();
   }
 
-  static Future<perm.PermissionStatus> cameraStatus() async {
-    return await perm.Permission.camera.status;
+  Future<bool> cameraStatusGranted() async {
+    return await perm.Permission.camera.status.isGranted;
   }
 
   PermissionManager.initialize() {
