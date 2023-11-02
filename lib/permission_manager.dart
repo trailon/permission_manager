@@ -57,35 +57,35 @@ class PermissionManager {
       locationPerm = [await perm.Permission.location.request()];
     }
     if (Platform.isAndroid) {
-      locationPerm = await Future.wait([
-        perm.Permission.locationWhenInUse.request(),
-        perm.Permission.locationAlways.request(),
-      ]);
+      locationPerm = [
+        await perm.Permission.locationWhenInUse.request(),
+        await perm.Permission.locationAlways.request(),
+      ];
     }
     return PermissionResponse(locationPerm);
   }
 
   Future<PermissionResponse> requestCamera() async {
     late final List<perm.PermissionStatus> cameraPerm;
-    cameraPerm = await Future.wait([
-      perm.Permission.camera.request(),
-    ]);
+    cameraPerm = [
+      await perm.Permission.camera.request(),
+    ];
     return PermissionResponse(cameraPerm);
   }
 
   Future<PermissionResponse> requestMediaLocation() async {
     late final List<perm.PermissionStatus> cameraPerm;
-    cameraPerm = await Future.wait([
-      perm.Permission.accessMediaLocation.request(),
-    ]);
+    cameraPerm = [
+      await perm.Permission.accessMediaLocation.request(),
+    ];
     return PermissionResponse(cameraPerm);
   }
 
   Future<PermissionResponse> requestMediaLibrary() async {
     late final List<perm.PermissionStatus> cameraPerm;
-    cameraPerm = await Future.wait([
-      perm.Permission.mediaLibrary.request(),
-    ]);
+    cameraPerm = [
+      await perm.Permission.mediaLibrary.request(),
+    ];
     return PermissionResponse(cameraPerm);
   }
 
@@ -99,12 +99,12 @@ class PermissionManager {
       bluetoothPerm = [await perm.Permission.bluetooth.request()];
     }
     if (Platform.isAndroid) {
-      bluetoothPerm = await Future.wait([
-        perm.Permission.bluetooth.request(),
-        if (connect) perm.Permission.bluetoothConnect.request(),
-        if (scan) perm.Permission.bluetoothScan.request(),
-        if (advertise) perm.Permission.bluetoothAdvertise.request(),
-      ]);
+      bluetoothPerm = [
+        await perm.Permission.bluetooth.request(),
+        if (connect) await perm.Permission.bluetoothConnect.request(),
+        if (scan) await perm.Permission.bluetoothScan.request(),
+        if (advertise) await perm.Permission.bluetoothAdvertise.request(),
+      ];
     }
     return PermissionResponse(bluetoothPerm);
   }
@@ -118,9 +118,9 @@ class PermissionManager {
     }
     if (Platform.isAndroid) {
       if (androidsdk >= 30) {
-        externalStoragePerm = await Future.wait([
-          perm.Permission.manageExternalStorage.request(),
-        ]);
+        externalStoragePerm = [
+          await perm.Permission.manageExternalStorage.request(),
+        ];
       } else {
         externalStoragePerm = [await perm.Permission.storage.request()];
       }
@@ -129,26 +129,37 @@ class PermissionManager {
   }
 
   /// If you want to access photos, videos, or audio use this method. It is not for accessing external storage.
+  /// PermissionResponse has all the required fields that needs to be added into info.plist and android manifest for you to now waste your time on finding what to add.
+  /// It is accessible via PermissionResponse.toMap() method.
   Future<PermissionResponse> requestMedia(
-      {bool photos = true, bool videos = false, bool audio = false}) async {
+      {bool photos = true,
+      bool videos = false,
+      bool audio = false,
+      bool music = false}) async {
     late final List<perm.PermissionStatus> mediaPerm;
     if (Platform.isIOS) {
-      mediaPerm = await Future.wait([
-        if (iosversion >= 14) perm.Permission.photos.request(),
-        if (iosversion >= 9.3) perm.Permission.mediaLibrary.request(),
-      ]);
+      mediaPerm = [
+        if (iosversion >= 14) await perm.Permission.photos.request(),
+        if (iosversion >= 9.3 && iosversion <= 14 && music)
+          await perm.Permission.mediaLibrary.request(),
+      ];
     }
     if (Platform.isAndroid) {
       if (androidsdk >= 29) {
-        mediaPerm = await Future.wait([
-          if (photos) perm.Permission.photos.request(),
-          if (videos) perm.Permission.videos.request(),
-          if (audio) perm.Permission.audio.request()
-        ]);
+        mediaPerm = [
+          if (photos) await perm.Permission.photos.request(),
+          if (videos) await perm.Permission.videos.request(),
+          if (audio) await perm.Permission.audio.request()
+        ];
       } else {
         mediaPerm = [await perm.Permission.storage.request()];
       }
     }
-    return PermissionResponse(mediaPerm);
+    return PermissionResponse(mediaPerm, infoplistkeys: {
+      "NSPhotoLibraryUsageDescription":
+          "Your app accesses the user's photo library",
+      "NSPhotoLibraryAddUsageDescription":
+          "Your app adds photos to the user's photo library"
+    });
   }
 }
