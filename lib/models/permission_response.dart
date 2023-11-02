@@ -14,8 +14,8 @@ class PermissionResponse {
 
   Map<String, Map<String,String>> toMap() {
     return {
-      "infoplists": infoplistkeys!,
-      "androidmanifests": androidmanifestperms!,
+      "infoplists": infoplistkeys ?? {},
+      "androidmanifests": androidmanifestperms ?? {},
     };
   }
 }
