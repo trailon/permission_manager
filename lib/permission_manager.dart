@@ -21,7 +21,8 @@ WebBrowserInfo? _webBrowserInfo;
 class PermissionManager {
   final DeviceInfoPlugin _plugin = DeviceInfoPlugin();
   int get androidsdk => _androidDeviceInfo!.version.sdkInt;
-  double get iosversion => double.tryParse(_iosDeviceInfo!.systemVersion) ?? 0;
+  double get iosversion =>
+      double.tryParse(_iosDeviceInfo?.systemVersion ?? "") ?? 0;
   PermissionManager();
 
   Future<perm.PermissionStatus> cameraStatus() async =>
@@ -30,23 +31,29 @@ class PermissionManager {
   PermissionManager.initialize() {
     _plugin.deviceInfo.then((basedev) async {
       _baseDeviceInfo = basedev;
-      if (Platform.isAndroid) {
-        _androidDeviceInfo = await _plugin.androidInfo;
-      }
-      if (Platform.isIOS) {
-        _iosDeviceInfo = await _plugin.iosInfo;
+      if (kIsWeb) {
+        _webBrowserInfo = await _plugin.webBrowserInfo;
+        return;
       }
       if (Platform.isWindows) {
         _windowsDeviceInfo = await _plugin.windowsInfo;
+        return;
       }
       if (Platform.isMacOS) {
         _macosDeviceInfo = await _plugin.macOsInfo;
+        return;
       }
       if (Platform.isLinux) {
         _linuxDeviceInfo = await _plugin.linuxInfo;
+        return;
       }
-      if (kIsWeb) {
-        _webBrowserInfo = await _plugin.webBrowserInfo;
+      if (Platform.isAndroid) {
+        _androidDeviceInfo = await _plugin.androidInfo;
+        return;
+      }
+      if (Platform.isIOS) {
+        _iosDeviceInfo = await _plugin.iosInfo;
+        return;
       }
     });
   }
