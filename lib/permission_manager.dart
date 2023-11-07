@@ -21,7 +21,8 @@ WebBrowserInfo? _webBrowserInfo;
 class PermissionManager {
   final DeviceInfoPlugin _plugin = DeviceInfoPlugin();
   int get androidsdk => _androidDeviceInfo!.version.sdkInt;
-  double get iosversion => double.tryParse(_iosDeviceInfo!.systemVersion) ?? 0;
+  double get iosversion =>
+      double.tryParse(_iosDeviceInfo?.systemVersion ?? "") ?? 0;
   PermissionManager();
 
   Future<perm.PermissionStatus> cameraStatus() async =>
