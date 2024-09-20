@@ -10,90 +10,75 @@ import 'package:permission_manager/models/permission_response.dart';
 export 'package:permission_handler/permission_handler.dart';
 export 'package:permission_manager/permission_manager.dart';
 
-BaseDeviceInfo? _baseDeviceInfo;
-AndroidDeviceInfo? _androidDeviceInfo;
-IosDeviceInfo? _iosDeviceInfo;
-WindowsDeviceInfo? _windowsDeviceInfo;
-MacOsDeviceInfo? _macosDeviceInfo;
-LinuxDeviceInfo? _linuxDeviceInfo;
-WebBrowserInfo? _webBrowserInfo;
-
 class PermissionManager {
-  final DeviceInfoPlugin _plugin = DeviceInfoPlugin();
-  int get androidsdk => _androidDeviceInfo!.version.sdkInt;
-  double get iosversion =>
-      double.tryParse(_iosDeviceInfo?.systemVersion ?? "") ?? 0;
-  PermissionManager();
+  final DeviceInfoPlugin _deviceInfoPlugin = DeviceInfoPlugin();
 
-  Future<perm.PermissionStatus> cameraStatus() async =>
-      await perm.Permission.camera.status;
+  BaseDeviceInfo? _baseDeviceInfo;
+  AndroidDeviceInfo? _androidDeviceInfo;
+  IosDeviceInfo? _iosDeviceInfo;
+  WindowsDeviceInfo? _windowsDeviceInfo;
+  MacOsDeviceInfo? _macosDeviceInfo;
+  LinuxDeviceInfo? _linuxDeviceInfo;
+  WebBrowserInfo? _webBrowserInfo;
 
-  PermissionManager.initialize() {
-    _plugin.deviceInfo.then((basedev) async {
-      _baseDeviceInfo = basedev;
-      if (kIsWeb) {
-        _webBrowserInfo = await _plugin.webBrowserInfo;
-        return;
-      }
-      if (Platform.isWindows) {
-        _windowsDeviceInfo = await _plugin.windowsInfo;
-        return;
-      }
-      if (Platform.isMacOS) {
-        _macosDeviceInfo = await _plugin.macOsInfo;
-        return;
-      }
-      if (Platform.isLinux) {
-        _linuxDeviceInfo = await _plugin.linuxInfo;
-        return;
-      }
-      if (Platform.isAndroid) {
-        _androidDeviceInfo = await _plugin.androidInfo;
-        return;
-      }
-      if (Platform.isIOS) {
-        _iosDeviceInfo = await _plugin.iosInfo;
-        return;
-      }
-    });
+  PermissionManager() {
+    _initializeDeviceInfo();
+  }
+
+  Future<void> _initializeDeviceInfo() async {
+    _baseDeviceInfo = await _deviceInfoPlugin.deviceInfo;
+
+    if (kIsWeb) {
+      _webBrowserInfo = await _deviceInfoPlugin.webBrowserInfo;
+    } else if (Platform.isAndroid) {
+      _androidDeviceInfo = await _deviceInfoPlugin.androidInfo;
+    } else if (Platform.isIOS) {
+      _iosDeviceInfo = await _deviceInfoPlugin.iosInfo;
+    } else if (Platform.isWindows) {
+      _windowsDeviceInfo = await _deviceInfoPlugin.windowsInfo;
+    } else if (Platform.isMacOS) {
+      _macosDeviceInfo = await _deviceInfoPlugin.macOsInfo;
+    } else if (Platform.isLinux) {
+      _linuxDeviceInfo = await _deviceInfoPlugin.linuxInfo;
+    }
+  }
+
+  int get androidSdkVersion => _androidDeviceInfo?.version.sdkInt ?? 0;
+  double get iosVersion =>
+      double.tryParse(_iosDeviceInfo?.systemVersion ?? '') ?? 0;
+
+  Future<perm.PermissionStatus> cameraStatus() async {
+    return perm.Permission.camera.status;
   }
 
   Future<PermissionResponse> requestLocation() async {
-    late final List<perm.PermissionStatus> locationPerm;
+    List<perm.PermissionStatus> locationPermissions = [];
     if (Platform.isIOS) {
-      locationPerm = [await perm.Permission.location.request()];
-    }
-    if (Platform.isAndroid) {
-      locationPerm = [
+      locationPermissions = [await perm.Permission.location.request()];
+    } else if (Platform.isAndroid) {
+      locationPermissions = [
         await perm.Permission.locationWhenInUse.request(),
         await perm.Permission.locationAlways.request(),
       ];
     }
-    return PermissionResponse(locationPerm);
+    return PermissionResponse(locationPermissions);
   }
 
   Future<PermissionResponse> requestCamera() async {
-    late final List<perm.PermissionStatus> cameraPerm;
-    cameraPerm = [
-      await perm.Permission.camera.request(),
-    ];
+    final cameraPerm = [await perm.Permission.camera.request()];
     return PermissionResponse(cameraPerm);
   }
 
   Future<PermissionResponse> requestMediaLocation() async {
-    late final List<perm.PermissionStatus> cameraPerm;
-    cameraPerm = [
-      await perm.Permission.accessMediaLocation.request(),
+    final mediaLocationPerm = [
+      await perm.Permission.accessMediaLocation.request()
     ];
-    return PermissionResponse(cameraPerm);
+    return PermissionResponse(mediaLocationPerm);
   }
 
   Future<PermissionResponse> requestMediaLibrary() async {
-    late final List<perm.PermissionStatus> cameraPerm;
-    cameraPerm = [
-      await perm.Permission.mediaLibrary.request(),
-    ];
-    return PermissionResponse(cameraPerm);
+    final mediaLibraryPerm = [await perm.Permission.mediaLibrary.request()];
+    return PermissionResponse(mediaLibraryPerm);
   }
 
   Future<PermissionResponse> requestBluetooth({
@@ -101,72 +86,75 @@ class PermissionManager {
     bool scan = true,
     bool advertise = false,
   }) async {
-    late final List<perm.PermissionStatus> bluetoothPerm;
+    List<perm.PermissionStatus> bluetoothPermissions = [];
+
     if (Platform.isIOS) {
-      bluetoothPerm = [await perm.Permission.bluetooth.request()];
-    }
-    if (Platform.isAndroid) {
-      bluetoothPerm = [
+      bluetoothPermissions = [await perm.Permission.bluetooth.request()];
+    } else if (Platform.isAndroid) {
+      bluetoothPermissions = [
         await perm.Permission.bluetooth.request(),
         if (connect) await perm.Permission.bluetoothConnect.request(),
         if (scan) await perm.Permission.bluetoothScan.request(),
         if (advertise) await perm.Permission.bluetoothAdvertise.request(),
       ];
     }
-    return PermissionResponse(bluetoothPerm);
+
+    return PermissionResponse(bluetoothPermissions);
   }
 
-  /// External storage access is for the file management system access and its considered a highly risky permission
-  /// for android users. If you are looking for a permission to access photos, videos, or audio use requestMedia instead.
   Future<PermissionResponse> requestExternalStorage() async {
-    late final List<perm.PermissionStatus> externalStoragePerm;
+    List<perm.PermissionStatus> storagePermissions = [];
+
     if (Platform.isIOS) {
-      externalStoragePerm = [await perm.Permission.storage.request()];
+      storagePermissions = [await perm.Permission.storage.request()];
+    } else if (Platform.isAndroid) {
+      storagePermissions = androidSdkVersion >= 30
+          ? [await perm.Permission.manageExternalStorage.request()]
+          : [await perm.Permission.storage.request()];
     }
-    if (Platform.isAndroid) {
-      if (androidsdk >= 30) {
-        externalStoragePerm = [
-          await perm.Permission.manageExternalStorage.request(),
-        ];
-      } else {
-        externalStoragePerm = [await perm.Permission.storage.request()];
-      }
-    }
-    return PermissionResponse(externalStoragePerm);
+
+    return PermissionResponse(storagePermissions);
   }
 
-  /// If you want to access photos, videos, or audio use this method. It is not for accessing external storage.
-  /// PermissionResponse has all the required fields that needs to be added into info.plist and android manifest for you to now waste your time on finding what to add.
-  /// It is accessible via PermissionResponse.toMap() method.
-  Future<PermissionResponse> requestMedia(
-      {bool photos = true,
-      bool videos = false,
-      bool audio = false,
-      bool music = false}) async {
-    late final List<perm.PermissionStatus> mediaPerm;
+  Future<PermissionResponse> requestMedia({
+    bool photos = true,
+    bool videos = false,
+    bool audio = false,
+    bool music = false,
+  }) async {
+    List<perm.PermissionStatus> mediaPermissions = [];
+
     if (Platform.isIOS) {
-      mediaPerm = [
-        if (iosversion >= 14) await perm.Permission.photos.request(),
-        if (iosversion >= 9.3 && iosversion <= 14 && music)
-          await perm.Permission.mediaLibrary.request(),
-      ];
-    }
-    if (Platform.isAndroid) {
-      if (androidsdk >= 29) {
-        mediaPerm = [
-          if (photos) await perm.Permission.photos.request(),
-          if (videos) await perm.Permission.videos.request(),
-          if (audio) await perm.Permission.audio.request()
-        ];
+      if (iosVersion >= 14) {
+        if (photos) {
+          mediaPermissions.add(await perm.Permission.photos.request());
+        }
+      }
+      if (iosVersion >= 9.3 && iosVersion <= 14 && music) {
+        mediaPermissions.add(await perm.Permission.mediaLibrary.request());
+      }
+    } else if (Platform.isAndroid) {
+      if (androidSdkVersion >= 29) {
+        if (photos) {
+          mediaPermissions.add(await perm.Permission.photos.request());
+        }
+        if (videos) {
+          mediaPermissions.add(await perm.Permission.videos.request());
+        }
+        if (audio) mediaPermissions.add(await perm.Permission.audio.request());
       } else {
-        mediaPerm = [await perm.Permission.storage.request()];
+        mediaPermissions = [await perm.Permission.storage.request()];
       }
     }
-    return PermissionResponse(mediaPerm, infoplistkeys: {
-      "NSPhotoLibraryUsageDescription":
-          "Your app accesses the user's photo library",
-      "NSPhotoLibraryAddUsageDescription":
-          "Your app adds photos to the user's photo library"
-    });
+
+    return PermissionResponse(
+      mediaPermissions,
+      infoplistkeys: {
+        "NSPhotoLibraryUsageDescription":
+            "Your app accesses the user's photo library",
+        "NSPhotoLibraryAddUsageDescription":
+            "Your app adds photos to the user's photo library"
+      },
+    );
   }
 }
