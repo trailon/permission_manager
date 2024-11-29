@@ -1,4 +1,4 @@
-library permission_manager;
+library;
 
 import 'dart:io';
 

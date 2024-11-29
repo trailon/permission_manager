@@ -7,7 +7,7 @@ environment:
   flutter: ">=1.17.0"
 
 dependencies:
-  device_info_plus: ^10.1.2
+  device_info_plus: ^11.1.1
   flutter:
     sdk: flutter
   permission_handler: ^11.0.1
@@ -15,7 +15,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^4.0.0
+  flutter_lints: ^5.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
